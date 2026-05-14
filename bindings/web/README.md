@@ -1,4 +1,4 @@
-# @xybrid/sdk
+# @xybrid/web
 
 Browser-first TypeScript SDK for running small Xybrid ONNX models fully in the tab with `onnxruntime-web`.
 
@@ -7,13 +7,13 @@ V1 uses ONNX Runtime Web as the execution backend. Xybrid owns the stable manife
 ## Install
 
 ```bash
-pnpm add @xybrid/sdk onnxruntime-web
+pnpm add @xybrid/web onnxruntime-web
 ```
 
 ## Usage
 
 ```ts
-import { Xybrid, XybridEnvelope, XybridTensor } from "@xybrid/sdk";
+import { Xybrid, XybridEnvelope, XybridTensor } from "@xybrid/web";
 
 const xybrid = await Xybrid.create({
   backend: "ort-wasm",
@@ -131,6 +131,6 @@ pass a manifest URL explicitly:
 http://127.0.0.1:5173/?manifest=/models/kokoro-82m/xybrid.web.json
 ```
 
-The demo loads the manifest with `@xybrid/sdk`, runs Xybrid preprocessing and
+The demo loads the manifest with `@xybrid/web`, runs Xybrid preprocessing and
 postprocessing in TypeScript, executes the ONNX model through ORT Web, and plays
 the returned WAV bytes.

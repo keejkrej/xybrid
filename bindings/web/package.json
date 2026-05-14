@@ -1,5 +1,5 @@
 {
-  "name": "@xybrid/sdk",
+  "name": "@xybrid/web",
   "version": "0.1.0-beta12",
   "description": "Browser-first TypeScript SDK for running Xybrid ONNX models with ONNX Runtime Web.",
   "license": "Apache-2.0",

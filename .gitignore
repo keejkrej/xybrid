@@ -37,9 +37,9 @@ rust-project.json
 *.wav
 
 # TypeScript binding artifacts
-bindings/typescript/node_modules/
-bindings/typescript/dist/
-bindings/typescript/demo-dist/
+bindings/web/node_modules/
+bindings/web/dist/
+bindings/web/demo-dist/
 bindings/react-native/node_modules/
 bindings/react-native/android/build/
 bindings/react-native/ios/build/

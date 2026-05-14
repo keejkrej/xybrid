@@ -2,7 +2,7 @@
 
 React Native New Architecture bindings for Xybrid native mobile inference. This package is for bare React Native apps; Expo Go and React Native Web are out of scope.
 
-React Native mobile uses the same Rust + UniFFI + native ONNX Runtime stack as the Kotlin and Swift SDKs. It does not use `onnxruntime-web`. Browser and React Native Web apps should use `@xybrid/sdk`.
+React Native mobile uses the same Rust + UniFFI + native ONNX Runtime stack as the Kotlin and Swift SDKs. It does not use `onnxruntime-web`. Browser and React Native Web apps should use `@xybrid/web`.
 
 ## Install
 

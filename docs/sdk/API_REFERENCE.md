@@ -57,7 +57,7 @@ manifest-first. It does not use the registry, IPC, native server runtimes, or
 Rust `xybrid-core` WASM in v1.
 
 ```ts
-import { Xybrid, XybridEnvelope, XybridTensor } from "@xybrid/sdk";
+import { Xybrid, XybridEnvelope, XybridTensor } from "@xybrid/web";
 
 const xybrid = await Xybrid.create({
   backend: "ort-wasm",
