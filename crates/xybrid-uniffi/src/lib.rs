@@ -44,6 +44,12 @@ fn set_binding(binding: String) {
     xybrid_sdk::set_binding(resolve_binding(binding.as_str()));
 }
 
+/// Set the Xybrid API key for registry and telemetry clients.
+#[uniffi::export]
+fn set_api_key(api_key: String) {
+    xybrid_sdk::set_api_key(&api_key);
+}
+
 /// Pure helper that maps a runtime binding string to a `&'static str`.
 ///
 /// Factored out of `set_binding` so tests can exercise every accepted
@@ -54,6 +60,7 @@ fn resolve_binding(binding: &str) -> &'static str {
     match binding {
         "kotlin" => "kotlin",
         "swift" => "swift",
+        "react-native" => "react-native",
         _ => xybrid_sdk::DEFAULT_BINDING,
     }
 }
@@ -626,6 +633,11 @@ mod tests {
     #[test]
     fn resolve_binding_swift_returns_swift() {
         assert_eq!(resolve_binding("swift"), "swift");
+    }
+
+    #[test]
+    fn resolve_binding_react_native_returns_react_native() {
+        assert_eq!(resolve_binding("react-native"), "react-native");
     }
 
     #[test]

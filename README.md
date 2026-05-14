@@ -12,7 +12,7 @@
 
 <p align="center">
   <strong>Run LLMs, ASR, and TTS natively in apps and games.</strong><br/>
-  <a href="#flutter">Flutter</a> · <a href="#swift">Swift</a> · <a href="#kotlin">Kotlin</a> · <a href="#unity">Unity</a> · <a href="#rust">Rust</a><br/>
+  <a href="#flutter">Flutter</a> · <a href="#react-native">React Native</a> · <a href="#swift">Swift</a> · <a href="#kotlin">Kotlin</a> · <a href="#unity">Unity</a> · <a href="#rust">Rust</a><br/>
   Private, offline, no cloud required.
 </p>
 
@@ -86,6 +86,7 @@
 |------|------|
 | Fastest demo (2 min) | [Install CLI →](#quick-start) |
 | Build a mobile or desktop app | [Flutter SDK →](bindings/flutter/) |
+| Build a bare React Native app | [React Native SDK →](bindings/react-native/) |
 | Add AI NPCs to your game | [Unity SDK →](bindings/unity/) and try the [3D tavern demo](https://github.com/xybrid-ai/xybrid-unity-tavern) |
 | Android native | [Kotlin SDK →](bindings/kotlin/) |
 | Rust / embedded | [Core crate →](crates/) |
@@ -102,6 +103,7 @@ Xybrid is a **Rust-powered runtime** with native bindings for every major platfo
 | SDK | Platforms | Install | Status | Sample |
 |-----|-----------|---------|--------|--------|
 | **[Flutter](bindings/flutter/)** | iOS, Android, macOS, Linux, Windows | [pub.dev](https://pub.dev/packages/xybrid_flutter) | Available | [README](examples/flutter/README.md) |
+| **[React Native](bindings/react-native/)** | iOS, Android | npm (`@xybrid/react-native`) | Preview | [README](bindings/react-native/README.md) |
 | **[Unity](bindings/unity/)** | macOS, Windows, Linux, iOS, Android | [See below](#quick-start) | Available | [Unity 3D AI tavern](https://github.com/xybrid-ai/xybrid-unity-tavern) |
 | **[Swift](bindings/apple/)** | iOS, macOS | Swift Package Manager | Coming Soon | [README](examples/ios/README.md) |
 | **[Kotlin](bindings/kotlin/)** | Android | Maven Central | Available | [README](examples/android/README.md) |
@@ -133,6 +135,25 @@ dependencies:
 final model = await Xybrid.model('kokoro-82m').load();
 final result = await model.run(XybridEnvelope.text('Hello world'));
 // result → 24kHz WAV audio
+```
+
+### React Native
+
+**Install** in a bare New Architecture app:
+
+```sh
+npm install @xybrid/react-native
+```
+
+**Run a model:**
+
+```ts
+import { Envelope, Xybrid } from "@xybrid/react-native";
+
+await Xybrid.init();
+const model = await Xybrid.model("kokoro-82m").load();
+const result = await model.run(Envelope.text("Hello world"));
+// result.audioBytes → 24kHz WAV audio
 ```
 
 ### Kotlin

@@ -40,6 +40,10 @@ rust-project.json
 bindings/typescript/node_modules/
 bindings/typescript/dist/
 bindings/typescript/demo-dist/
+bindings/react-native/node_modules/
+bindings/react-native/android/build/
+bindings/react-native/ios/build/
+bindings/react-native/ios/Frameworks/*.xcframework/
 
 # Xcode user data
 xcuserdata/

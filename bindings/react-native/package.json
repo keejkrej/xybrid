@@ -1,0 +1,51 @@
+{
+  "name": "@xybrid/react-native",
+  "version": "0.1.0-beta12",
+  "description": "React Native New Architecture bindings for Xybrid native mobile inference.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "android",
+    "ios",
+    "src",
+    "dist",
+    "xybrid-react-native.podspec",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-native": ">=0.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  },
+  "codegenConfig": {
+    "name": "XybridReactNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "ai.xybrid.reactnative"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

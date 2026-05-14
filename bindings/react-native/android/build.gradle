@@ -1,0 +1,51 @@
+buildscript {
+  ext.kotlinVersion = "1.9.24"
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath("com.android.tools.build:gradle:8.5.2")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+  }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "org.jetbrains.kotlin.android"
+
+def kotlinBindingDir = findProperty("xybridKotlinDir")
+
+android {
+  namespace "ai.xybrid.reactnative"
+  compileSdkVersion 34
+
+  defaultConfig {
+    minSdkVersion 24
+    consumerProguardFiles "consumer-rules.pro"
+  }
+
+  sourceSets {
+    main {
+      kotlin.srcDirs += ["src/main/kotlin"]
+      if (kotlinBindingDir != null) {
+        kotlin.srcDirs += ["${kotlinBindingDir}/src/main/kotlin"]
+        jniLibs.srcDirs += ["${kotlinBindingDir}/libs"]
+      }
+    }
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+}
+
+dependencies {
+  if (kotlinBindingDir == null) {
+    implementation("ai.xybrid:xybrid-kotlin:0.1.0-rc2")
+  }
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+  implementation("net.java.dev.jna:jna:5.13.0@aar")
+  compileOnly("com.facebook.react:react-android")
+}

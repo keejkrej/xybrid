@@ -42,7 +42,7 @@ X-Xybrid-Client: binding=flutter; sdk_version=0.1.0-beta12; core_version=0.1.0-b
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `binding` | enum string | The platform binding that made the call. One of `rust`, `flutter`, `kotlin`, `swift`, `unity`. Defaults to `rust` when no binding is registered. |
+| `binding` | enum string | The platform binding that made the call. One of `rust`, `flutter`, `kotlin`, `react-native`, `swift`, `unity`. Defaults to `rust` when no binding is registered. |
 | `sdk_version` | semver-ish string | `xybrid-sdk` package version, baked in at compile time via `CARGO_PKG_VERSION`. |
 | `core_version` | semver-ish string | `xybrid-core` package version, baked in via the same mechanism. Usually equal to `sdk_version` but reported independently so version skews surface. |
 | `platform` | enum string | Compile-time target triple summary. See the table below. |
@@ -55,6 +55,7 @@ X-Xybrid-Client: binding=flutter; sdk_version=0.1.0-beta12; core_version=0.1.0-b
 | `rust` | Default — used when no platform binding registers itself. | `xybrid_sdk::DEFAULT_BINDING` |
 | `flutter` | Flutter plugin via `flutter_rust_bridge`. | `XybridSdkClient` (`bindings/flutter/rust/src/api/sdk_client.rs`) |
 | `kotlin` | Android library via UniFFI. | `Xybrid.init(context)` (`bindings/kotlin/src/main/kotlin/ai/xybrid/Xybrid.kt`) |
+| `react-native` | React Native New Architecture package via UniFFI-backed native modules. | `Xybrid.init()` (`bindings/react-native/`) |
 | `swift` | iOS / macOS Swift package via UniFFI. | `Xybrid.initialize()` (`bindings/apple/Sources/Xybrid/Xybrid.swift`) |
 | `unity` | Unity / C# binding via the C FFI. | `XybridClient.Initialize()` (`bindings/unity/Runtime/Api/XybridClient.cs`) |
 

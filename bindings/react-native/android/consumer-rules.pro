@@ -1,0 +1,2 @@
+-keep class ai.xybrid.** { *; }
+-keep class com.sun.jna.** { *; }

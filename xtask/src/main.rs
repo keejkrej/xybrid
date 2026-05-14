@@ -335,6 +335,25 @@ enum Commands {
         skip_frb_codegen: bool,
     },
 
+    /// Build React Native native dependencies for Android, iOS, or both
+    BuildReactNative {
+        /// Target platform to build for
+        #[arg(long, value_enum, default_value = "all")]
+        platform: ReactNativePlatform,
+
+        /// Build in release mode (default: true)
+        #[arg(long, default_value = "true")]
+        release: bool,
+
+        /// Build in debug mode (overrides --release)
+        #[arg(long)]
+        debug: bool,
+
+        /// Override the version (defaults to Cargo.toml version or git tag)
+        #[arg(long)]
+        version: Option<String>,
+    },
+
     /// Install required Rust cross-compilation targets for iOS, macOS, and Android
     SetupTargets,
 
@@ -404,6 +423,10 @@ enum Commands {
         /// Skip packaging Flutter plugin
         #[arg(long)]
         skip_flutter: bool,
+
+        /// Skip packaging React Native package
+        #[arg(long)]
+        skip_react_native: bool,
     },
 }
 
@@ -470,6 +493,29 @@ enum FlutterPlatform {
     /// Linux
     #[value(name = "linux")]
     Linux,
+}
+
+#[derive(Clone, Copy, ValueEnum, Debug, PartialEq, Eq)]
+enum ReactNativePlatform {
+    /// Android native dependencies
+    #[value(name = "android")]
+    Android,
+    /// iOS native dependencies
+    #[value(name = "ios")]
+    Ios,
+    /// Android and iOS native dependencies
+    #[value(name = "all")]
+    All,
+}
+
+impl ReactNativePlatform {
+    fn name(&self) -> &'static str {
+        match self {
+            ReactNativePlatform::Android => "android",
+            ReactNativePlatform::Ios => "ios",
+            ReactNativePlatform::All => "all",
+        }
+    }
 }
 
 impl FlutterPlatform {
@@ -592,6 +638,16 @@ fn main() -> Result<()> {
             let ver = get_version(version.as_deref());
             build_flutter(platform, is_release, &ver, skip_frb_codegen)?;
         }
+        Commands::BuildReactNative {
+            platform,
+            release,
+            debug,
+            version,
+        } => {
+            let is_release = !debug && release;
+            let ver = get_version(version.as_deref());
+            build_react_native(platform, is_release, &ver)?;
+        }
         Commands::SetupTargets => {
             setup_targets()?;
         }
@@ -621,9 +677,17 @@ fn main() -> Result<()> {
             skip_apple,
             skip_android,
             skip_flutter,
+            skip_react_native,
         } => {
             let ver = get_version(version.as_deref());
-            package_artifacts(&ver, &output_dir, skip_apple, skip_android, skip_flutter)?;
+            package_artifacts(
+                &ver,
+                &output_dir,
+                skip_apple,
+                skip_android,
+                skip_flutter,
+                skip_react_native,
+            )?;
         }
     }
 
@@ -1243,6 +1307,8 @@ fn generate_bindings(language: BindingsLanguage, out_dir: Option<PathBuf>) -> Re
                 })?;
                 println!("  Moved modulemap to {:?}", modulemap_dst);
             }
+
+            sync_react_native_swift_binding()?;
         }
 
         // For Kotlin, apply compatibility fixes and copy to ai.xybrid package
@@ -2144,6 +2210,103 @@ fn build_flutter(
     Ok(())
 }
 
+/// Build React Native native dependencies.
+fn build_react_native(platform: ReactNativePlatform, release: bool, version: &str) -> Result<()> {
+    println!(
+        "Building React Native native dependencies for {} (version {})...",
+        platform.name(),
+        version
+    );
+    println!();
+
+    match platform {
+        ReactNativePlatform::Android => build_react_native_android(release, version)?,
+        ReactNativePlatform::Ios => build_react_native_ios(release, version)?,
+        ReactNativePlatform::All => {
+            build_react_native_android(release, version)?;
+            build_react_native_ios(release, version)?;
+        }
+    }
+
+    println!("✓ React Native native dependencies are ready");
+    Ok(())
+}
+
+/// Copy the generated Swift UniFFI wrapper into the React Native package.
+fn sync_react_native_swift_binding() -> Result<()> {
+    let src = PathBuf::from("bindings/apple/Sources/Xybrid/xybrid_uniffi.swift");
+    let dst_dir = PathBuf::from("bindings/react-native/ios/Generated");
+    let dst = dst_dir.join("xybrid_uniffi.swift");
+
+    if !src.exists() {
+        return Ok(());
+    }
+
+    std::fs::create_dir_all(&dst_dir)
+        .with_context(|| format!("Failed to create directory: {:?}", dst_dir))?;
+    std::fs::copy(&src, &dst).with_context(|| format!("Failed to copy {:?} to {:?}", src, dst))?;
+    println!("  ✓ Synced React Native Swift UniFFI binding to {:?}", dst);
+
+    Ok(())
+}
+
+fn build_react_native_android(release: bool, version: &str) -> Result<()> {
+    println!("Preparing React Native Android artifacts...");
+    generate_kotlin_bindings()?;
+    build_android(release, vec![], version)?;
+
+    let gradle_wrapper = if cfg!(target_os = "windows") {
+        "gradlew.bat"
+    } else {
+        "./gradlew"
+    };
+    let mut cmd = Command::new(gradle_wrapper);
+    cmd.arg("assembleRelease").current_dir("bindings/kotlin");
+    let status = cmd
+        .status()
+        .context("Failed to run Kotlin Gradle build for React Native Android")?;
+    if !status.success() {
+        anyhow::bail!("Kotlin Gradle build failed for React Native Android");
+    }
+
+    Ok(())
+}
+
+fn build_react_native_ios(release: bool, version: &str) -> Result<()> {
+    if !cfg!(target_os = "macos") {
+        anyhow::bail!("React Native iOS native dependencies require macOS");
+    }
+    println!("Preparing React Native iOS artifacts...");
+    build_xcframework(release, version)?;
+    stage_react_native_xcframework()?;
+    Ok(())
+}
+
+fn stage_react_native_xcframework() -> Result<()> {
+    let src = PathBuf::from("bindings/apple/XCFrameworks/XybridFFI.xcframework");
+    let dst_dir = PathBuf::from("bindings/react-native/ios/Frameworks");
+    let dst = dst_dir.join("XybridFFI.xcframework");
+
+    if !src.exists() {
+        anyhow::bail!(
+            "XybridFFI.xcframework not found at {:?}. Run `cargo xtask build-xcframework` first.",
+            src
+        );
+    }
+
+    if dst.exists() {
+        std::fs::remove_dir_all(&dst)
+            .with_context(|| format!("Failed to remove existing {:?}", dst))?;
+    }
+    std::fs::create_dir_all(&dst_dir)
+        .with_context(|| format!("Failed to create directory: {:?}", dst_dir))?;
+    copy_dir_recursive(&src, &dst)
+        .with_context(|| format!("Failed to stage {:?} to {:?}", src, dst))?;
+    println!("  ✓ Staged React Native iOS framework at {:?}", dst);
+
+    Ok(())
+}
+
 /// Build Flutter FFI for a native platform (not Android)
 fn build_flutter_native(target: &str, release: bool, features: &str) -> Result<()> {
     let mut cmd = Command::new("cargo");
@@ -2819,6 +2982,7 @@ fn package_artifacts(
     skip_apple: bool,
     skip_android: bool,
     skip_flutter: bool,
+    skip_react_native: bool,
 ) -> Result<()> {
     println!("Packaging artifacts (version {})...", version);
     println!();
@@ -2856,6 +3020,15 @@ fn package_artifacts(
         println!("Skipping Flutter artifacts (--skip-flutter)");
     }
 
+    // Package React Native package
+    if !skip_react_native {
+        if let Some(pkg) = package_react_native(version, output_dir)? {
+            packages.push(pkg);
+        }
+    } else {
+        println!("Skipping React Native package (--skip-react-native)");
+    }
+
     if packages.is_empty() {
         println!();
         println!("No artifacts were packaged.");
@@ -2863,6 +3036,7 @@ fn package_artifacts(
         println!("  cargo xtask build-xcframework");
         println!("  cargo xtask build-android");
         println!("  cargo xtask build-flutter --platform <platform>");
+        println!("  cargo xtask build-react-native --platform <platform>");
         return Ok(());
     }
 
@@ -3139,6 +3313,72 @@ fn package_flutter(version: &str, output_dir: &Path) -> Result<Option<PackageInf
         size,
         sha256,
         platform: Some("flutter".to_string()),
+        architectures: None,
+    }))
+}
+
+/// Package React Native npm package as a tarball.
+fn package_react_native(version: &str, output_dir: &Path) -> Result<Option<PackageInfo>> {
+    let rn_dir = PathBuf::from("bindings/react-native");
+
+    if !rn_dir.exists() {
+        println!("Skipping React Native package - not found at {:?}", rn_dir);
+        return Ok(None);
+    }
+
+    let package_json = rn_dir.join("package.json");
+    if !package_json.exists() {
+        println!("Skipping React Native package - package.json not found");
+        return Ok(None);
+    }
+
+    println!("Packaging React Native package...");
+
+    let filename = format!("xybrid-react-native-{}.tar.gz", version);
+    let output_path = output_dir.join(&filename);
+
+    if output_path.exists() {
+        std::fs::remove_file(&output_path)?;
+    }
+
+    let parent = rn_dir.parent().unwrap_or(&rn_dir);
+    let status = Command::new("tar")
+        .arg("-czf")
+        .arg(&output_path)
+        .arg("--exclude=node_modules")
+        .arg("--exclude=dist")
+        .arg("--exclude=android/build")
+        .arg("--exclude=ios/build")
+        .arg("--exclude=example/node_modules")
+        .arg("--exclude=example/android/build")
+        .arg("--exclude=example/ios/Pods")
+        .arg("-C")
+        .arg(parent)
+        .arg("react-native")
+        .status()
+        .context("Failed to run tar command")?;
+
+    if !status.success() {
+        anyhow::bail!("Failed to create React Native package tarball");
+    }
+
+    let size = std::fs::metadata(&output_path)?.len();
+    let sha256 = calculate_sha256(&output_path)?;
+
+    println!(
+        "  ✓ {} ({} bytes, sha256: {}...)",
+        filename,
+        size,
+        &sha256[..16]
+    );
+
+    Ok(Some(PackageInfo {
+        name: "xybrid-react-native".to_string(),
+        version: version.to_string(),
+        filename,
+        size,
+        sha256,
+        platform: Some("react-native".to_string()),
         architectures: None,
     }))
 }
