@@ -1,0 +1,38 @@
+{
+  "name": "@xybrid/sdk",
+  "version": "0.1.0-beta12",
+  "description": "Browser-first TypeScript SDK for running Xybrid ONNX models with ONNX Runtime Web.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "demo": "vite --host 127.0.0.1",
+    "demo:build": "vite build --outDir demo-dist",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.26.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

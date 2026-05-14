@@ -1,0 +1,112 @@
+{
+  "model_id": "onnx-community/Kokoro-82M-v1.0-ONNX",
+  "version": "1.0.0",
+  "description": "Kokoro 82M ONNX text-to-speech demo manifest for Xybrid Web.",
+  "execution_template": {
+    "type": "onnx",
+    "model_file": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx"
+  },
+  "artifacts": [
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/tokenizer.json"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_heart.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_bella.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nicole.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sarah.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_adam.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_michael.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_emma.bin"
+    },
+    {
+      "path": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_george.bin"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "input_ids",
+      "dtype": "int64",
+      "shape": [1, "N"]
+    },
+    {
+      "name": "style",
+      "dtype": "float32",
+      "shape": [1, 256]
+    },
+    {
+      "name": "speed",
+      "dtype": "float32",
+      "shape": [1]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "waveform",
+      "dtype": "float32",
+      "shape": [1, "samples"]
+    }
+  ],
+  "preprocessing": [
+    {
+      "type": "Phonemize",
+      "tokens_file": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/tokenizer.json",
+      "backend": "MisakiDictionary",
+      "add_padding": true,
+      "normalize_text": true
+    }
+  ],
+  "postprocessing": [
+    {
+      "type": "TTSAudioEncode",
+      "sample_rate": 24000,
+      "apply_postprocessing": true
+    }
+  ],
+  "voices": {
+    "format": {
+      "type": "PerModel",
+      "voice_dir": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices",
+      "pattern": "{voice}.bin",
+      "embedding_dim": 256
+    },
+    "default": "af_heart",
+    "catalog": [
+      { "id": "af_heart", "name": "Heart", "index": 0, "gender": "Female", "language": "en-US" },
+      { "id": "af_bella", "name": "Bella", "index": 1, "gender": "Female", "language": "en-US" },
+      { "id": "af_nicole", "name": "Nicole", "index": 2, "gender": "Female", "language": "en-US" },
+      { "id": "af_sarah", "name": "Sarah", "index": 3, "gender": "Female", "language": "en-US" },
+      { "id": "am_adam", "name": "Adam", "index": 4, "gender": "Male", "language": "en-US" },
+      { "id": "am_michael", "name": "Michael", "index": 5, "gender": "Male", "language": "en-US" },
+      { "id": "bf_emma", "name": "Emma", "index": 6, "gender": "Female", "language": "en-GB" },
+      { "id": "bm_george", "name": "George", "index": 7, "gender": "Male", "language": "en-GB" }
+    ]
+  },
+  "files": [
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model_quantized.onnx",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/tokenizer.json",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_heart.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_bella.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_nicole.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/af_sarah.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_adam.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/am_michael.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bf_emma.bin",
+    "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/bm_george.bin"
+  ]
+}

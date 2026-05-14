@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111820'/%3E%3Cpath d='M13 32c8-18 16 18 25 0 4-8 8-8 13 0' fill='none' stroke='%2371c7a9' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <title>Xybrid Kokoro Web Demo</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workbench" aria-labelledby="app-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Xybrid Web</p>
+            <h1 id="app-title">Kokoro TTS</h1>
+          </div>
+          <div class="runtime-pill" id="runtime-pill">ort-wasm</div>
+        </header>
+
+        <div class="content-grid">
+          <section class="controls-panel" aria-label="Synthesis controls">
+            <div class="field-row">
+              <label for="voice-select">Voice</label>
+              <select id="voice-select"></select>
+            </div>
+
+            <div class="split-row">
+              <div class="field-row">
+                <label for="device-select">Runtime</label>
+                <select id="device-select">
+                  <option value="wasm">WASM</option>
+                  <option value="webgpu">WebGPU</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label for="dtype-select">Weights</label>
+                <select id="dtype-select">
+                  <option value="q8">Q8</option>
+                  <option value="fp32">FP32</option>
+                  <option value="fp16">FP16</option>
+                  <option value="q4">Q4</option>
+                  <option value="q4f16">Q4F16</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="label-line">
+                <label for="speed-range">Speed</label>
+                <output id="speed-output" for="speed-range">1.00</output>
+              </div>
+              <input id="speed-range" type="range" min="0.7" max="1.35" step="0.05" value="1" />
+            </div>
+
+            <div class="field-row text-field">
+              <label for="text-input">Text</label>
+              <textarea id="text-input" rows="8">Hello, welcome to Xybrid!</textarea>
+            </div>
+
+            <div class="button-row">
+              <button id="load-button" type="button" class="secondary">Load Model</button>
+              <button id="speak-button" type="button" disabled>Synthesize</button>
+            </div>
+          </section>
+
+          <section class="output-panel" aria-label="Synthesis output">
+            <canvas id="waveform-canvas" width="960" height="360" aria-label="Generated audio waveform"></canvas>
+
+            <div class="meter-row">
+              <div>
+                <span class="metric-label">Model</span>
+                <strong id="model-status">Not loaded</strong>
+              </div>
+              <div>
+                <span class="metric-label">Latency</span>
+                <strong id="latency-status">-</strong>
+              </div>
+              <div>
+                <span class="metric-label">Audio</span>
+                <strong id="audio-status">-</strong>
+              </div>
+            </div>
+
+            <audio id="audio-player" controls></audio>
+
+            <div class="activity-log" id="activity-log" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/demo/main.ts"></script>
+  </body>
+</html>

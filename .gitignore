@@ -36,6 +36,11 @@ rust-project.json
 
 *.wav
 
+# TypeScript binding artifacts
+bindings/typescript/node_modules/
+bindings/typescript/dist/
+bindings/typescript/demo-dist/
+
 # Xcode user data
 xcuserdata/
 *.xcuserstate

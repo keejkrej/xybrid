@@ -30,12 +30,13 @@
 Each SDK uses idiomatic naming for its platform. The spec uses canonical names;
 SDKs may prefix or adjust casing:
 
-| Spec Name | Dart | Kotlin | Swift | C# (Unity) |
-|-----------|------|--------|-------|-------------|
-| `Envelope` | `XybridEnvelope` | `XybridEnvelope` | `XybridEnvelope` | `Envelope` |
-| `InferenceResult` | `XybridResult` | `XybridResult` | `XybridResult` | `InferenceResult` |
-| `OutputType` enum | `FfiOutputType` | `OutputType` | `OutputType` | `OutputType` |
-| `PipelineInputType` | `FfiPipelineInputType` | `PipelineInputType` | — | — |
+| Spec Name | Dart | Kotlin | Swift | C# (Unity) | TypeScript Web |
+|-----------|------|--------|-------|-------------|----------------|
+| `Envelope` | `XybridEnvelope` | `XybridEnvelope` | `XybridEnvelope` | `Envelope` | `XybridEnvelope` |
+| `InferenceResult` | `XybridResult` | `XybridResult` | `XybridResult` | `InferenceResult` | `XybridRunResult` |
+| `OutputType` enum | `FfiOutputType` | `OutputType` | `OutputType` | `OutputType` | `XybridOutputType` |
+| `PipelineInputType` | `FfiPipelineInputType` | `PipelineInputType` | — | — | — |
+| Tensor input/output | — | — | — | — | `XybridTensor` |
 
 ---
 
@@ -48,6 +49,111 @@ All SDKs follow the same three-step pattern:
 2. Load the Model   →  await loader.load()
 3. Run Inference    →  await model.run(envelope: input)
 ```
+
+### TypeScript Web V1
+
+The browser TypeScript SDK follows the same loader pattern and is
+manifest-first. It does not use the registry, IPC, native server runtimes, or
+Rust `xybrid-core` WASM in v1.
+
+```ts
+import { Xybrid, XybridEnvelope, XybridTensor } from "@xybrid/sdk";
+
+const xybrid = await Xybrid.create({
+  backend: "ort-wasm",
+  cache: "persistent",
+});
+
+const model = await xybrid.model("/models/unet/xybrid.web.json").load({
+  onProgress: (event) => console.log(event),
+  signal,
+});
+
+const result = await model.runTensor({
+  inputs: {
+    image: XybridTensor.fromFloat32(input, {
+      shape: [1, 1, 256, 256],
+      layout: "NCHW",
+    }),
+  },
+});
+
+const maskLogits = result.outputs.mask;
+
+const tts = await xybrid.model("/models/kokoro-82m/xybrid.web.json").load();
+const speech = await tts.run(XybridEnvelope.text("Hello from Xybrid"), {
+  voice: "af_heart",
+  speed: 1.0,
+});
+const wavBytes = speech.unwrapAudio();
+```
+
+Supported TypeScript Web public types:
+
+| Type | Status | Notes |
+|------|--------|-------|
+| `Xybrid` | ✅ | `create()` selects `ort-wasm` or optional `ort-webgpu` and cache mode. |
+| `XybridModelRef` | ✅ | Created by `xybrid.model(manifestUrl)`. |
+| `XybridModel` | ✅ | Runs typed tensors with `runTensor()` and metadata pipelines with `run()`. |
+| `XybridEnvelope` | ✅ | Text, audio, and embedding inputs for native-style `run()`. |
+| `XybridRunResult` | ✅ | Text, audio, tensor, class, and token outputs. |
+| `XybridTensor` | ✅ | Wraps typed arrays with dtype, shape, and layout metadata. |
+| `XybridWebManifest` | ✅ | Browser model package manifest, stored as `xybrid.web.json`. |
+| `LoadProgressEvent` | ✅ | Manifest, cache, download, verify, and ready events. |
+| `XybridError` | ✅ | Structured error with a stable `code`. |
+| `BackendKind` | ✅ | `"ort-wasm"` or `"ort-webgpu"`. |
+| `CacheMode` | ✅ | `"persistent"`, `"memory"`, or `"none"`. |
+
+`xybrid.web.json` has this shape:
+
+```json
+{
+  "model_id": "xybrid/unet-tiny",
+  "version": "1.0.0",
+  "execution_template": {
+    "type": "onnx",
+    "model_file": "model.onnx"
+  },
+  "artifacts": [
+    {
+      "path": "model.onnx",
+      "sizeBytes": 123456,
+      "sha256": "..."
+    }
+  ],
+  "inputs": [
+    {
+      "name": "image",
+      "dtype": "float32",
+      "shape": [1, 1, 256, 256],
+      "layout": "NCHW"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "mask",
+      "dtype": "float32",
+      "shape": [1, 1, 256, 256],
+      "layout": "NCHW"
+    }
+  ],
+  "preprocessing": [
+    { "type": "Normalize", "mean": [0.5], "std": [0.5] }
+  ],
+  "postprocessing": [
+    { "type": "Softmax" }
+  ],
+  "files": ["model.onnx"]
+}
+```
+
+The TypeScript SDK supports the native preprocessing/postprocessing step names
+for ONNX browser models. The current browser implementation targets tensor,
+audio, image, token, and TTS/Kokoro-style paths; native-only templates such as
+GGUF, SafeTensors, CoreML, TFLite, and codec TTS return unsupported errors.
+
+`modelId` / `executionTemplate` / object-style `files` are accepted as
+deprecated compatibility aliases for earlier web manifests.
 
 ---
 
